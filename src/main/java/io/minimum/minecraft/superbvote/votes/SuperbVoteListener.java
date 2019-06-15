@@ -65,6 +65,9 @@ public class SuperbVoteListener implements Listener {
         }
 
         if (queue) {
+            if (SuperbVote.getPlugin().getConfiguration().disableVoteQueuing()) {
+                return;
+            }
             SuperbVote.getPlugin().getLogger().log(Level.INFO, "Queuing vote from " + vote.getName() + " to be run later");
             for (VoteReward reward : bestRewards) {
                 reward.broadcastVote(context, false, broadcast && SuperbVote.getPlugin().getConfig().getBoolean("broadcast.queued"));
@@ -104,13 +107,15 @@ public class SuperbVoteListener implements Listener {
 
             // Process queued votes.
             PlayerVotes pv = SuperbVote.getPlugin().getVoteStorage().getVotes(event.getPlayer().getUniqueId());
-            List<Vote> votes = SuperbVote.getPlugin().getQueuedVotes().getAndRemoveVotes(event.getPlayer().getUniqueId());
-            if (!votes.isEmpty()) {
-                for (Vote vote : votes) {
-                    processVote(pv, vote, false, false, true);
-                    pv = new PlayerVotes(pv.getUuid(), event.getPlayer().getName(),pv.getVotes() + 1, PlayerVotes.Type.CURRENT);
+            if (!SuperbVote.getPlugin().getConfiguration().disableVoteQueuing()) {
+                List<Vote> votes = SuperbVote.getPlugin().getQueuedVotes().getAndRemoveVotes(event.getPlayer().getUniqueId());
+                if (!votes.isEmpty()) {
+                    for (Vote vote : votes) {
+                        processVote(pv, vote, false, false, true);
+                        pv = new PlayerVotes(pv.getUuid(), event.getPlayer().getName(),pv.getVotes() + 1, PlayerVotes.Type.CURRENT);
+                    }
+                    afterVoteProcessing();
                 }
-                afterVoteProcessing();
             }
 
             // Remind players to vote.

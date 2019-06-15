@@ -52,10 +52,12 @@ public class SuperbVote extends JavaPlugin {
             throw new RuntimeException("Exception whilst initializing vote storage", e);
         }
 
-        try {
-            queuedVotes = new QueuedVotesStorage(new File(getDataFolder(), "queued_votes.json"));
-        } catch (IOException e) {
-            throw new RuntimeException("Exception whilst initializing queued vote storage", e);
+        if (!configuration.disableVoteQueuing()) {
+            try {
+                queuedVotes = new QueuedVotesStorage(new File(getDataFolder(), "queued_votes.json"));
+            } catch (IOException e) {
+                throw new RuntimeException("Exception whilst initializing queued vote storage", e);
+            }
         }
 
         scoreboardHandler = new ScoreboardHandler();
@@ -74,7 +76,9 @@ public class SuperbVote extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SuperbVoteListener(), this);
         getServer().getPluginManager().registerEvents(new TopPlayerSignListener(), this);
         getServer().getScheduler().runTaskTimerAsynchronously(this, voteStorage::save, 20, 20 * 30);
-        getServer().getScheduler().runTaskTimerAsynchronously(this, queuedVotes::save, 20, 20 * 30);
+        if (!configuration.disableVoteQueuing()) {
+            getServer().getScheduler().runTaskTimerAsynchronously(this, queuedVotes::save, 20, 20 * 30);
+        }
         getServer().getScheduler().runTaskAsynchronously(this, SuperbVote.getPlugin().getScoreboardHandler()::doPopulate);
         getServer().getScheduler().runTaskAsynchronously(this, new TopPlayerSignFetcher(topPlayerSignStorage.getSignList()));
 
@@ -98,7 +102,9 @@ public class SuperbVote extends JavaPlugin {
             voteReminderTask = null;
         }
         voteStorage.save();
-        queuedVotes.save();
+        if (!configuration.disableVoteQueuing()) {
+            queuedVotes.save();
+        }
         voteStorage.close();
         try {
             topPlayerSignStorage.save(new File(getDataFolder(), "top_voter_signs.json"));

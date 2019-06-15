@@ -236,7 +236,9 @@ public class SuperbVoteCommand implements CommandExecutor {
                 if (confirm1 != null) {
                     confirm1.getCancellationTask().cancel();
                     SuperbVote.getPlugin().getVoteStorage().clearVotes();
-                    SuperbVote.getPlugin().getQueuedVotes().clearVotes();
+                    if (!SuperbVote.getPlugin().getConfiguration().disableVoteQueuing()) {
+                        SuperbVote.getPlugin().getQueuedVotes().clearVotes();
+                    }
 
                     Bukkit.getScheduler().runTaskAsynchronously(SuperbVote.getPlugin(), () -> {
                         SuperbVote.getPlugin().getScoreboardHandler().doPopulate();

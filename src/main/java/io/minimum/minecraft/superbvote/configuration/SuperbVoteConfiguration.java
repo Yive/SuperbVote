@@ -197,4 +197,8 @@ public class SuperbVoteConfiguration {
 
         return null;
     }
+
+    public boolean disableVoteQueuing() {
+        return  configuration.getBoolean("disable-vote-queuing", false);
+    }
 }
